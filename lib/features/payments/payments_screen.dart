@@ -69,36 +69,52 @@ class PaymentsScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '72% of threshold reached',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white70 : Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            '\$72.00 / \$100.00',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(context).primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: 0.72,
-                          minHeight: 8,
-                          backgroundColor: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
-                          valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
-                        ),
+                      Builder(
+                        builder: (context) {
+                          final data = appState.revenueData;
+                          final double currentEarnings = data?.thisMonth ?? 0.0;
+                          const double threshold = 100.0;
+                          final double percentage = currentEarnings >= threshold
+                              ? 1.0
+                              : currentEarnings / threshold;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${(percentage * 100).toStringAsFixed(0)}% of threshold reached',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? Colors.white70 : Colors.black87,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${AppFormatter.currency(currentEarnings, currency)} / ${AppFormatter.currency(threshold, currency)}',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: percentage,
+                                  minHeight: 8,
+                                  backgroundColor: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+                                  valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
                       ),
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 16.0),

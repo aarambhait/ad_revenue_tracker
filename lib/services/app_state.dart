@@ -11,6 +11,7 @@ class AppState extends ChangeNotifier {
   String _currency = 'USD';
   bool _isLoggedIn = false;
   String? _errorMessage;
+  String? _publisherId;
 
   // Google OAuth 2.0 Credentials with specific AdSense/AdMob readonly scopes
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -33,6 +34,7 @@ class AppState extends ChangeNotifier {
   String get currency => _currency;
   bool get isLoggedIn => _isLoggedIn;
   String? get errorMessage => _errorMessage;
+  String? get publisherId => _publisherId;
   GoogleSignInAccount? get currentUser => _currentUser;
   RevenueData? get revenueData => _revenueData;
   List<PaymentData> get payments => _payments;
@@ -51,6 +53,7 @@ class AppState extends ChangeNotifier {
         _revenueData = null;
         _payments = [];
         _errorMessage = null;
+        _publisherId = null;
         notifyListeners();
       }
     });
@@ -118,6 +121,7 @@ class AppState extends ChangeNotifier {
     _revenueData = null;
     _payments = [];
     _errorMessage = null;
+    _publisherId = null;
     notifyListeners();
   }
 
@@ -154,12 +158,27 @@ class AppState extends ChangeNotifier {
       final authHeaders = await account.authHeaders;
       final apiService = GoogleAdsApiService(authHeaders: authHeaders);
 
-      _revenueData = await apiService.fetchAdSenseData();
-      _payments = MockDataService.generatePaymentData();
+      // Fetch combined dashboard data (AdSense + AdMob)
+      final result = await apiService.fetchCombinedData();
+      final String adsenseAccount = result['adsenseAccount'] as String;
+      _revenueData = result['revenueData'] as RevenueData;
+      _publisherId = adsenseAccount.split('/').last;
+
+      // Fetch actual payout receipts
+      final realPayments = await apiService.fetchAdSensePayments(adsenseAccount);
+      if (realPayments.isNotEmpty) {
+        _payments = realPayments;
+      } else {
+        // Fallback to mock payments if there is no real payment history
+        _payments = MockDataService.generatePaymentData();
+      }
+
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString().replaceFirst('Exception: ', '');
       _revenueData = null;
+      _payments = [];
+      _publisherId = null;
     } finally {
       _isLoading = false;
       notifyListeners();

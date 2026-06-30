@@ -70,7 +70,7 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'pub-938210398210',
+                            appState.publisherId ?? 'No active publisher account',
                             style: Theme.of(context).textTheme.labelLarge,
                           ),
                           Text(
