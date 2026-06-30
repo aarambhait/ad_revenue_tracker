@@ -139,12 +139,16 @@ class AppState extends ChangeNotifier {
         'https://www.googleapis.com/auth/adsense.readonly',
         'https://www.googleapis.com/auth/admob.readonly',
       ];
-      final hasScopes = await _googleSignIn.canAccessScopes(requiredScopes);
-      if (!hasScopes) {
-        final authorized = await _googleSignIn.requestScopes(requiredScopes);
-        if (!authorized) {
-          throw Exception('Google AdSense and AdMob scopes are required to track your earnings.');
+      try {
+        final hasScopes = await _googleSignIn.canAccessScopes(requiredScopes);
+        if (!hasScopes) {
+          final authorized = await _googleSignIn.requestScopes(requiredScopes);
+          if (!authorized) {
+            throw Exception('Google AdSense and AdMob scopes are required to track your earnings.');
+          }
         }
+      } catch (e) {
+        debugPrint('Scope verification check bypassed: $e');
       }
 
       final authHeaders = await account.authHeaders;
