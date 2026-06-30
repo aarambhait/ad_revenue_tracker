@@ -1,3 +1,17 @@
+class AdUnitPerformance {
+  final String name;
+  final String platform; // "AdSense" or "AdMob"
+  final double earnings;
+  final double ctr;
+
+  AdUnitPerformance({
+    required this.name,
+    required this.platform,
+    required this.earnings,
+    required this.ctr,
+  });
+}
+
 class RevenueData {
   final double today;
   final double yesterday;
@@ -15,6 +29,11 @@ class RevenueData {
   final List<double> dailyEarnings;
   final List<String> dailyLabels;
 
+  // New fields for platform breakdown & ad units
+  final double adsenseEarnings;
+  final double admobEarnings;
+  final List<AdUnitPerformance> topAdUnits;
+
   RevenueData({
     required this.today,
     required this.yesterday,
@@ -27,5 +46,8 @@ class RevenueData {
     required this.pageRpm,
     required this.dailyEarnings,
     required this.dailyLabels,
+    required this.adsenseEarnings,
+    required this.admobEarnings,
+    required this.topAdUnits,
   });
 }

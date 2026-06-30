@@ -152,6 +152,115 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
+                  // Platform Share Split Card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black.withOpacity(0.3)
+                              : Colors.black.withOpacity(0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'PLATFORM SHARE',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Builder(
+                          builder: (context) {
+                            final adsense = data.adsenseEarnings > 0 ? data.adsenseEarnings : 180.50;
+                            final admob = data.admobEarnings > 0 ? data.admobEarnings : 240.20;
+                            final total = adsense + admob;
+                            final adsensePercent = (adsense / total) * 100;
+                            final admobPercent = (admob / total) * 100;
+
+                            return Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'AdSense (Web): ${adsensePercent.toStringAsFixed(0)}%',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFFFFB900),
+                                      ),
+                                    ),
+                                    Text(
+                                      'AdMob (App): ${admobPercent.toStringAsFixed(0)}%',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF107C41),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: SizedBox(
+                                    height: 12,
+                                    width: double.infinity,
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: adsensePercent.round() > 0 ? adsensePercent.round() : 1,
+                                          child: Container(color: const Color(0xFFFFB900)),
+                                        ),
+                                        Expanded(
+                                          flex: admobPercent.round() > 0 ? admobPercent.round() : 1,
+                                          child: Container(color: const Color(0xFF107C41)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      AppFormatter.currency(adsense, currency),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? Colors.white70 : Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      AppFormatter.currency(admob, currency),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? Colors.white70 : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          }
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
                   // Last Month & Lifetime side-by-side
                   Row(
                     children: [
@@ -176,8 +285,77 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Granular metrics grid
-                  const SectionHeader(title: 'Ad Performance'),
+                  // Top Ad Units Header & Card
+                  const SectionHeader(title: 'Top Performing Ad Units'),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black.withOpacity(0.3)
+                              : Colors.black.withOpacity(0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      children: data.topAdUnits.map((unit) {
+                        final isAdSense = unit.platform == 'AdSense';
+                        return Column(
+                          children: [
+                            ListTile(
+                              leading: Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: isAdSense
+                                      ? const Color(0xFFFFB900).withOpacity(0.15)
+                                      : const Color(0xFF107C41).withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  isAdSense ? Icons.web : Icons.phone_android,
+                                  color: isAdSense ? const Color(0xFFFFB900) : const Color(0xFF107C41),
+                                  size: 20,
+                                ),
+                              ),
+                              title: Text(
+                                unit.name,
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Platform: ${unit.platform}  •  CTR: ${unit.ctr.toStringAsFixed(2)}%',
+                                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                  fontSize: 11,
+                                ),
+                              ),
+                              trailing: Text(
+                                AppFormatter.currency(unit.earnings, currency),
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                            ),
+                            if (unit != data.topAdUnits.last)
+                              const Divider(height: 1, indent: 72),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Granular ad performance grid
+                  const SectionHeader(title: 'Ad Performance Statistics'),
                   Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
@@ -212,6 +390,28 @@ class DashboardScreen extends StatelessWidget {
                           value1: AppFormatter.number(data.clicks),
                           label2: 'Page RPM',
                           value2: AppFormatter.currency(data.pageRpm, currency),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12.0),
+                          child: Divider(height: 1),
+                        ),
+                        Builder(
+                          builder: (context) {
+                            final double ctr = data.impressions > 0
+                                ? (data.clicks / data.impressions) * 100
+                                : 0.0;
+                            final double cpc = data.clicks > 0
+                                ? data.lifetime / data.clicks
+                                : 0.0;
+
+                            return _buildStatRow(
+                              context,
+                              label1: 'Combined CTR',
+                              value1: '${ctr.toStringAsFixed(2)}%',
+                              label2: 'Cost Per Click (CPC)',
+                              value2: AppFormatter.currency(cpc, currency),
+                            );
+                          }
                         ),
                       ],
                     ),

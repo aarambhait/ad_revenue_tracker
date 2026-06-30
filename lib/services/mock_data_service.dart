@@ -15,6 +15,34 @@ class MockDataService {
       pageRpm: 9.96,
       dailyEarnings: [48.20, 52.40, 45.10, 61.80, 50.30, 56.40, 42.80],
       dailyLabels: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'],
+      adsenseEarnings: 18290.40,
+      admobEarnings: 20000.00,
+      topAdUnits: [
+        AdUnitPerformance(
+          name: 'Responsive Header Banner',
+          platform: 'AdSense',
+          earnings: 10974.24,
+          ctr: 1.42,
+        ),
+        AdUnitPerformance(
+          name: 'App Interstitial (Home Activity)',
+          platform: 'AdMob',
+          earnings: 13000.00,
+          ctr: 4.80,
+        ),
+        AdUnitPerformance(
+          name: 'Main Feed Native Card',
+          platform: 'AdSense',
+          earnings: 7316.16,
+          ctr: 2.15,
+        ),
+        AdUnitPerformance(
+          name: 'App Reward Video (Unlock Items)',
+          platform: 'AdMob',
+          earnings: 7000.00,
+          ctr: 8.92,
+        ),
+      ],
     );
   }
 
