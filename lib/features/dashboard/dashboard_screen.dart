@@ -145,7 +145,9 @@ class DashboardScreen extends StatelessWidget {
 
                   // Smooth Custom Painter line chart
                   RevenueChart(
-                    values: data.dailyEarnings,
+                    values: data.dailyEarnings
+                        .map((e) => AppFormatter.convert(e, currency))
+                        .toList(),
                     labels: data.dailyLabels,
                   ),
                   const SizedBox(height: 16),
