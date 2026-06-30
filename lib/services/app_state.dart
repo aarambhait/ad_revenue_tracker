@@ -4,16 +4,23 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../models/revenue_data.dart';
 import '../models/payment_data.dart';
 import 'mock_data_service.dart';
+import 'google_ads_api_service.dart';
 
 class AppState extends ChangeNotifier {
   bool _isDarkMode = false;
   String _currency = 'USD';
   bool _isLoggedIn = false;
+  String? _errorMessage;
 
-  // Google OAuth 2.0 Credentials
+  // Google OAuth 2.0 Credentials with specific AdSense/AdMob readonly scopes
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: '676044285538-vdothcgn8rrcfv90ohn2jfiqisc0ek3i.apps.googleusercontent.com',
-    scopes: ['email', 'profile'],
+    scopes: [
+      'email',
+      'profile',
+      'https://www.googleapis.com/auth/adsense.readonly',
+      'https://www.googleapis.com/auth/admob.readonly',
+    ],
   );
 
   GoogleSignInAccount? _currentUser;
@@ -25,6 +32,7 @@ class AppState extends ChangeNotifier {
   bool get isDarkMode => _isDarkMode;
   String get currency => _currency;
   bool get isLoggedIn => _isLoggedIn;
+  String? get errorMessage => _errorMessage;
   GoogleSignInAccount? get currentUser => _currentUser;
   RevenueData? get revenueData => _revenueData;
   List<PaymentData> get payments => _payments;
@@ -32,13 +40,19 @@ class AppState extends ChangeNotifier {
 
   AppState() {
     _loadPreferences();
-    _loadMockData();
 
     // Listen to Google Sign-In updates
-    _googleSignIn.onCurrentUserChanged.listen((account) {
+    _googleSignIn.onCurrentUserChanged.listen((account) async {
       _currentUser = account;
       _isLoggedIn = account != null;
-      notifyListeners();
+      if (account != null) {
+        await loadAdSenseData();
+      } else {
+        _revenueData = null;
+        _payments = [];
+        _errorMessage = null;
+        notifyListeners();
+      }
     });
 
     // Attempt silent sign-in on startup
@@ -69,6 +83,7 @@ class AppState extends ChangeNotifier {
   Future<bool> login() async {
     try {
       _isLoading = true;
+      _errorMessage = null;
       notifyListeners();
 
       final account = await _googleSignIn.signIn();
@@ -83,6 +98,7 @@ class AppState extends ChangeNotifier {
       return false;
     } catch (e) {
       _isLoading = false;
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
       debugPrint('Google Sign-In Error: $e');
       return false;
@@ -99,23 +115,54 @@ class AppState extends ChangeNotifier {
     }
     _currentUser = null;
     _isLoggedIn = false;
+    _revenueData = null;
+    _payments = [];
+    _errorMessage = null;
     notifyListeners();
   }
 
-  void _loadMockData() {
+  Future<void> loadAdSenseData() async {
+    final account = _currentUser;
+    if (account == null) {
+      _errorMessage = 'Sign in required.';
+      notifyListeners();
+      return;
+    }
+
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    // Simulate short network delay for professional look
-    Future.delayed(const Duration(milliseconds: 600), () {
-      _revenueData = MockDataService.generateRevenueData();
+    try {
+      // Ensure user granted the specific read-only scopes
+      final requiredScopes = [
+        'https://www.googleapis.com/auth/adsense.readonly',
+        'https://www.googleapis.com/auth/admob.readonly',
+      ];
+      final hasScopes = await _googleSignIn.canAccessScopes(requiredScopes);
+      if (!hasScopes) {
+        final authorized = await _googleSignIn.requestScopes(requiredScopes);
+        if (!authorized) {
+          throw Exception('Google AdSense and AdMob scopes are required to track your earnings.');
+        }
+      }
+
+      final authHeaders = await account.authHeaders;
+      final apiService = GoogleAdsApiService(authHeaders: authHeaders);
+
+      _revenueData = await apiService.fetchAdSenseData();
       _payments = MockDataService.generatePaymentData();
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _revenueData = null;
+    } finally {
       _isLoading = false;
       notifyListeners();
-    });
+    }
   }
 
   void refreshData() {
-    _loadMockData();
+    loadAdSenseData();
   }
 }
